@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-type protocolParams struct {
+type ProtocolParams struct {
 	MinimumUtxoValue uint64
 	PoolDeposit      uint64
 	KeyDeposit       uint64

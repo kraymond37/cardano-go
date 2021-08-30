@@ -23,7 +23,7 @@ type txBuilderOutput struct {
 
 type TxBuilder struct {
 	tx       Transaction
-	protocol protocolParams
+	protocol ProtocolParams
 	inputs   []txBuilderInput
 	outputs  []txBuilderOutput
 	ttl      uint64
@@ -32,7 +32,7 @@ type TxBuilder struct {
 	pkeys    map[string]crypto.ExtendedSigningKey
 }
 
-func NewTxBuilder(protocol protocolParams) *TxBuilder {
+func NewTxBuilder(protocol ProtocolParams) *TxBuilder {
 	return &TxBuilder{
 		protocol: protocol,
 		vkeys:    map[string]crypto.ExtendedVerificationKey{},
