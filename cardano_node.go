@@ -13,12 +13,12 @@ import (
 type cardanoNode interface {
 	QueryUtxos(Address) ([]Utxo, error)
 	QueryTip() (NodeTip, error)
-	SubmitTx(transaction) error
+	SubmitTx(Transaction) error
 }
 
 type Utxo struct {
 	Address Address
-	TxId    transactionID
+	TxId    TransactionID
 	Amount  uint64
 	Index   uint64
 }
@@ -70,7 +70,7 @@ func (cli *cardanoCli) QueryUtxos(address Address) ([]Utxo, error) {
 				return nil, fmt.Errorf("malformed cli response")
 			}
 
-			txId := transactionID(args[0])
+			txId := TransactionID(args[0])
 			index, err := ParseUint64(args[1])
 			if err != nil {
 				return nil, err
@@ -112,7 +112,7 @@ func (cli *cardanoCli) QueryTip() (NodeTip, error) {
 	}, nil
 }
 
-func (cli *cardanoCli) SubmitTx(tx transaction) error {
+func (cli *cardanoCli) SubmitTx(tx Transaction) error {
 	const txFileName = "txsigned.temp"
 	txPayload := cardanoCliTx{
 		Type:        "Tx MaryEra",

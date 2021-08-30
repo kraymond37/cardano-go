@@ -21,8 +21,8 @@ type txBuilderOutput struct {
 	amount  uint64
 }
 
-type txBuilder struct {
-	tx       transaction
+type TxBuilder struct {
+	tx       Transaction
 	protocol protocolParams
 	inputs   []txBuilderInput
 	outputs  []txBuilderOutput
@@ -32,15 +32,15 @@ type txBuilder struct {
 	pkeys    map[string]crypto.ExtendedSigningKey
 }
 
-func newTxBuilder(protocol protocolParams) *txBuilder {
-	return &txBuilder{
+func NewTxBuilder(protocol protocolParams) *TxBuilder {
+	return &TxBuilder{
 		protocol: protocol,
 		vkeys:    map[string]crypto.ExtendedVerificationKey{},
 		pkeys:    map[string]crypto.ExtendedSigningKey{},
 	}
 }
 
-func (builder *txBuilder) AddInput(xvk crypto.ExtendedVerificationKey, txId transactionID, index, amount uint64) {
+func (builder *TxBuilder) AddInput(xvk crypto.ExtendedVerificationKey, txId TransactionID, index, amount uint64) {
 	input := txBuilderInput{input: transactionInput{ID: txId.Bytes(), Index: index}, amount: amount}
 	builder.inputs = append(builder.inputs, input)
 
@@ -49,21 +49,21 @@ func (builder *txBuilder) AddInput(xvk crypto.ExtendedVerificationKey, txId tran
 	builder.vkeys[vkeyHashString] = xvk
 }
 
-func (builder *txBuilder) AddOutput(address Address, amount uint64) {
+func (builder *TxBuilder) AddOutput(address Address, amount uint64) {
 	output := txBuilderOutput{address: address, amount: amount}
 	builder.outputs = append(builder.outputs, output)
 }
 
-func (builder *txBuilder) SetTtl(ttl uint64) {
+func (builder *TxBuilder) SetTtl(ttl uint64) {
 	builder.ttl = ttl
 }
 
-func (builder *txBuilder) SetFee(fee uint64) {
+func (builder *TxBuilder) SetFee(fee uint64) {
 	builder.fee = fee
 }
 
 // This assumes that the builder inputs and outputs are defined
-func (builder *txBuilder) AddFee(address Address) error {
+func (builder *TxBuilder) AddFee(address Address) error {
 	// Set a temporary fee in order to serialize a valid transaction
 	builder.SetFee(maxUint64)
 	minFee := builder.calculateMinFee()
@@ -109,7 +109,7 @@ func (builder *txBuilder) AddFee(address Address) error {
 	return nil
 }
 
-func (builder *txBuilder) calculateMinFee() uint64 {
+func (builder *TxBuilder) calculateMinFee() uint64 {
 	fakeXSigningKey := crypto.NewExtendedSigningKey([]byte{
 		0x0c, 0xcb, 0x74, 0xf3, 0x6b, 0x7d, 0xa1, 0x64, 0x9a, 0x81, 0x44, 0x67, 0x55, 0x22, 0xd4, 0xd8, 0x09, 0x7c, 0x64, 0x12,
 	}, "")
@@ -122,7 +122,7 @@ func (builder *txBuilder) calculateMinFee() uint64 {
 		witnessSet.VKeyWitnessSet = append(witnessSet.VKeyWitnessSet, witness)
 	}
 
-	tx := transaction{
+	tx := Transaction{
 		Body:       body,
 		WitnessSet: witnessSet,
 		Metadata:   nil,
@@ -131,7 +131,7 @@ func (builder *txBuilder) calculateMinFee() uint64 {
 	return builder.calculateFee(&tx)
 }
 
-func (builder *txBuilder) feeForOuput(address Address, amount uint64) uint64 {
+func (builder *TxBuilder) feeForOuput(address Address, amount uint64) uint64 {
 	builderCpy := *builder
 
 	// We don't care about the fee impact on the tx size since we are
@@ -145,19 +145,19 @@ func (builder *txBuilder) feeForOuput(address Address, amount uint64) uint64 {
 	return feeAfter - feeBefore
 }
 
-func (builder *txBuilder) calculateFee(tx *transaction) uint64 {
+func (builder *TxBuilder) calculateFee(tx *Transaction) uint64 {
 	txBytes := tx.Bytes()
 	txLength := uint64(len(txBytes))
 	return builder.protocol.MinFeeA*txLength + builder.protocol.MinFeeB
 }
 
-func (builder *txBuilder) Sign(xsk crypto.ExtendedSigningKey) {
+func (builder *TxBuilder) Sign(xsk crypto.ExtendedSigningKey) {
 	pkeyHashBytes := blake2b.Sum256(xsk)
 	pkeyHashString := hex.EncodeToString(pkeyHashBytes[:])
 	builder.pkeys[pkeyHashString] = xsk
 }
 
-func (builder *txBuilder) Build() transaction {
+func (builder *TxBuilder) Build() Transaction {
 	if len(builder.pkeys) != len(builder.vkeys) {
 		panic("missing signatures")
 	}
@@ -173,10 +173,10 @@ func (builder *txBuilder) Build() transaction {
 		witnessSet.VKeyWitnessSet = append(witnessSet.VKeyWitnessSet, witness)
 	}
 
-	return transaction{Body: body, WitnessSet: witnessSet, Metadata: nil}
+	return Transaction{Body: body, WitnessSet: witnessSet, Metadata: nil}
 }
 
-func (builder *txBuilder) buildBody() transactionBody {
+func (builder *TxBuilder) buildBody() transactionBody {
 	inputs := make([]transactionInput, len(builder.inputs))
 	for i, txInput := range builder.inputs {
 		inputs[i] = transactionInput{
