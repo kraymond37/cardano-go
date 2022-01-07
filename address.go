@@ -3,7 +3,9 @@ package cardano
 import (
 	"github.com/echovl/bech32"
 	"github.com/echovl/cardano-go/crypto"
+	"github.com/islishude/base58"
 	"golang.org/x/crypto/blake2b"
+	"strings"
 )
 
 type Network byte
@@ -18,7 +20,15 @@ type Address string
 
 // Bytes returns the byte slice representation of the address.
 func (addr *Address) Bytes() []byte {
-	_, bytes, err := bech32.DecodeToBase256(string(*addr))
+	if strings.HasPrefix(string(*addr), "addr") {
+		_, bytes, err := bech32.DecodeToBase256(string(*addr))
+		if err != nil {
+			panic(err)
+		}
+		return bytes
+	}
+
+	bytes, err := base58.Decode(string(*addr))
 	if err != nil {
 		panic(err)
 	}
