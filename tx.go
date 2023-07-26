@@ -28,8 +28,8 @@ func (id TransactionID) Bytes() []byte {
 
 type Transaction struct {
 	_          struct{} `cbor:",toarray"`
-	Body       transactionBody
-	WitnessSet transactionWitnessSet
+	Body       TransactionBody
+	WitnessSet TransactionWitnessSet
 	Metadata   *transactionMetadata // or null
 }
 
@@ -50,12 +50,12 @@ func (tx *Transaction) ID() TransactionID {
 	return TransactionID(hex.EncodeToString(txHash[:]))
 }
 
-type transactionWitnessSet struct {
-	VKeyWitnessSet []vkeyWitness `cbor:"0,keyasint,omitempty"`
+type TransactionWitnessSet struct {
+	VKeyWitnessSet []VKeyWitness `cbor:"0,keyasint,omitempty"`
 	// TODO: add optional fields 1-4
 }
 
-type vkeyWitness struct {
+type VKeyWitness struct {
 	_         struct{} `cbor:",toarray"`
 	VKey      []byte   // ed25519 public key
 	Signature []byte   // ed25519 signature
@@ -67,7 +67,7 @@ type transactionMetadata map[uint64]transactionMetadatum
 // This could be cbor map, array, int, bytes or a text
 type transactionMetadatum struct{}
 
-type transactionBody struct {
+type TransactionBody struct {
 	Inputs       []transactionInput  `cbor:"0,keyasint"`
 	Outputs      []transactionOutput `cbor:"1,keyasint"`
 	Fee          uint64              `cbor:"2,keyasint"`
@@ -78,7 +78,7 @@ type transactionBody struct {
 	MetadataHash *uint               `cbor:"7,keyasint,omitempty"` // Omit for now
 }
 
-func (body *transactionBody) Bytes() []byte {
+func (body *TransactionBody) Bytes() []byte {
 	bytes, err := cbor.Marshal(body)
 	if err != nil {
 		panic(err)

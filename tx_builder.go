@@ -114,11 +114,11 @@ func (builder *TxBuilder) calculateMinFee() uint64 {
 		0x0c, 0xcb, 0x74, 0xf3, 0x6b, 0x7d, 0xa1, 0x64, 0x9a, 0x81, 0x44, 0x67, 0x55, 0x22, 0xd4, 0xd8, 0x09, 0x7c, 0x64, 0x12,
 	}, "")
 
-	body := builder.buildBody()
+	body := builder.BuildBody()
 
-	witnessSet := transactionWitnessSet{}
+	witnessSet := TransactionWitnessSet{}
 	for _, vkey := range builder.vkeys {
-		witness := vkeyWitness{VKey: fakeXSigningKey.ExtendedVerificationKey()[:32], Signature: fakeXSigningKey.Sign(vkey)}
+		witness := VKeyWitness{VKey: fakeXSigningKey.ExtendedVerificationKey()[:32], Signature: fakeXSigningKey.Sign(vkey)}
 		witnessSet.VKeyWitnessSet = append(witnessSet.VKeyWitnessSet, witness)
 	}
 
@@ -162,13 +162,13 @@ func (builder *TxBuilder) Build() Transaction {
 		panic("missing signatures")
 	}
 
-	body := builder.buildBody()
-	witnessSet := transactionWitnessSet{}
+	body := builder.BuildBody()
+	witnessSet := TransactionWitnessSet{}
 	for _, pkey := range builder.pkeys {
 		txHash := blake2b.Sum256(body.Bytes())
 		publicKey := pkey.ExtendedVerificationKey()[:32]
 		signature := pkey.Sign(txHash[:])
-		witness := vkeyWitness{VKey: publicKey, Signature: signature}
+		witness := VKeyWitness{VKey: publicKey, Signature: signature}
 
 		witnessSet.VKeyWitnessSet = append(witnessSet.VKeyWitnessSet, witness)
 	}
@@ -176,7 +176,7 @@ func (builder *TxBuilder) Build() Transaction {
 	return Transaction{Body: body, WitnessSet: witnessSet, Metadata: nil}
 }
 
-func (builder *TxBuilder) buildBody() transactionBody {
+func (builder *TxBuilder) BuildBody() TransactionBody {
 	inputs := make([]transactionInput, len(builder.inputs))
 	for i, txInput := range builder.inputs {
 		inputs[i] = transactionInput{
@@ -192,7 +192,7 @@ func (builder *TxBuilder) buildBody() transactionBody {
 			Amount:  txOutput.amount,
 		}
 	}
-	return transactionBody{
+	return TransactionBody{
 		Inputs:  inputs,
 		Outputs: outputs,
 		Fee:     builder.fee,

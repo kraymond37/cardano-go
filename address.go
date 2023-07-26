@@ -35,7 +35,7 @@ func (addr *Address) Bytes() []byte {
 	return bytes
 }
 
-func newEnterpriseAddress(xvk crypto.ExtendedVerificationKey, network Network) Address {
+func NewEnterpriseAddress(xvk crypto.ExtendedVerificationKey, network Network) Address {
 	addressBytes := make([]byte, 29)
 	header := 0x60 | (byte(network) & 0xFF)
 	hash, err := blake2b.New(224/8, nil)
